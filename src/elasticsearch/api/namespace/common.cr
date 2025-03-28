@@ -71,21 +71,29 @@ module Elasticsearch
             post_data = nil
           end
            
+          context = OpenSSL::SSL::Context::Client.new
+          context.verify_mode = OpenSSL::SSL::VerifyMode::NONE  # don't verify the certification
+
+
           if method == "GET"
-            endpoint = "http://#{@settings[:host]}:#{@settings[:port]}/#{path}?#{final_params}"
-            response = HTTP::Client.get(endpoint, body: post_data, headers: HTTP::Headers{"Content-Type" => "application/json"})
+            endpoint = "https://#{@settings[:host]}:#{@settings[:port]}/#{path}?#{final_params}"
+            response = HTTP::Client.get(endpoint, body: post_data, headers: HTTP::Headers{"Content-Type" => "application/json"}, tls: context)
+
           elsif method == "POST"
-            endpoint = "http://#{@settings[:host]}:#{@settings[:port]}/#{path}"
-            response = HTTP::Client.post(url: endpoint, body: post_data)
+            endpoint = "https://#{@settings[:host]}:#{@settings[:port]}/#{path}"
+            response = HTTP::Client.post(url: endpoint, body: post_data, tls: context)
+
           elsif method == "PUT"
-            endpoint = "http://#{@settings[:host]}:#{@settings[:port]}/#{path}"
-            response = HTTP::Client.put(url: endpoint, body: post_data)
+            endpoint = "https://#{@settings[:host]}:#{@settings[:port]}/#{path}"
+            response = HTTP::Client.put(url: endpoint, body: post_data, headers: HTTP::Headers{"Content-Type" => "application/json"}, tls: context)
+
           elsif method == "DELETE"
-            endpoint = "http://#{@settings[:host]}:#{@settings[:port]}/#{path}?#{final_params}"
-            response = HTTP::Client.delete(url: endpoint)
+            endpoint = "https://#{@settings[:host]}:#{@settings[:port]}/#{path}?#{final_params}"
+            response = HTTP::Client.delete(url: endpoint, tls: context)
+
           elsif method == "HEAD"
-            endpoint = "http://#{@settings[:host]}:#{@settings[:port]}/#{path}"
-            response = HTTP::Client.head(url: endpoint)
+            endpoint = "https://#{@settings[:host]}:#{@settings[:port]}/#{path}"
+            response = HTTP::Client.head(url: endpoint, tls: context)
           end
 
           result = response.as(HTTP::Client::Response)
